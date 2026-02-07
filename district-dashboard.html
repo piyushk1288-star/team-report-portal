@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>District Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>District Dashboard</h2>
+<p>
+  District: <b><span id="district"></span></b>
+</p>
+
+<!-- SUMMARY CARDS -->
+<div>
+  <h3>Total Calling: <span id="totalCalling">0</span></h3>
+  <h3>Total Visit: <span id="totalVisit">0</span></h3>
+  <h3>Total Revenue: ₹ <span id="totalRevenue">0</span></h3>
+</div>
+
+<hr>
+
+<!-- CHART -->
+<canvas id="perfChart" height="120"></canvas>
+
+<hr>
+
+<!-- ACTION BUTTONS -->
+<button onclick="go('calling.html')">📞 Calling Entry</button>
+<button onclick="go('visit.html')">🚗 Visit Entry</button>
+<button onclick="go('revenue.html')">💰 Revenue Entry</button>
+
+<br><br>
+
+<button onclick="downloadMyData()">⬇️ Download My Data</button>
+<button onclick="logout()">Logout</button>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById("district").innerText =
+    sessionStorage.getItem("district");
+
+  // Fetch district summary
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "getDistrictSummary",
+      district: sessionStorage.getItem("district")
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.success) return;
+
+    document.getElementById("totalCalling").innerText = d.data.calling;
+    document.getElementById("totalVisit").innerText = d.data.visit;
+    document.getElementById("totalRevenue").innerText = d.data.revenue;
+
+    drawChart(d.data.calling, d.data.visit, d.data.revenue);
+  });
+
+  function drawChart(c, v, r) {
+    new Chart(document.getElementById("perfChart"), {
+      type: "bar",
+      data: {
+        labels: ["Calling", "Visit", "Revenue"],
+        datasets: [{
+          label: "Performance",
+          data: [c, v, r]
+        }]
+      }
+    });
+  }
+
+  function go(page) {
+    window.location = page;
+  }
+</script>
+
+</body>
+</html>
+
